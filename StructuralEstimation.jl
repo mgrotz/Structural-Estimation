@@ -72,6 +72,15 @@ scatter(x,y)
 using DataFrames
 using JuMP
 using Ipopt
+t = tau
+g = gamma
 
 N = size(df)[1]
-
+m = Model(Ipopt.Optimizer)    # define empty model solved by Ipopt algorithm
+set_attribute(m, "max_cpu_time", 60.0)
+set_attribute(m, "max_cpu_time", 60.0)
+set_attribute(m, "print_level", 0)
+@variable(m, c[i=1:N] >= 0, container = DenseAxisArray)       # define positive consumption for each agent
+@variable(m, 0 <= l[i=1:N] <= 1, container = DenseAxisArray)  # define leisure in [0,1] for each agent
+@constraint(m, c[i=1:N] .== (1.0-t)*(1.0.-l[i=1:N]).*df[:,"wage"] + df[:,"epsilon"])
+@objective(m, Max,  sum( g*log(c) + (1-g)*log(l)))
