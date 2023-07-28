@@ -33,7 +33,7 @@ Pkg.build("JuMP")
 #=======================================================================================#
 #============= DATA GENERATION, MANAGEMENT AND REGRESSION VISUALISATION ================#
 #=======================================================================================#
-
+using Random
 Random.seed!(123)           # set the seed to ensure reproducibility
 N = 1000             # set number of agents in economy
 gamma = .5           # set Cobb-Douglas relative preference for consumption
@@ -73,4 +73,5 @@ using DataFrames
 using JuMP
 using Ipopt
 
-# test
+N = size(df)[1]
+
