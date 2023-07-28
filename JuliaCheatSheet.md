@@ -60,7 +60,7 @@ function foo(x::Int)
 
 ## Mutable vs immutable objects
 ```julia
-isimmutable()
+# isimmutable()
 ```
 ## Packages
 
