@@ -48,50 +48,57 @@ function diffeq_many(f,  x_0, y_0,  maxiter = 10000, res = .001, frame = 10, ite
     return plt
 end
 
-x_0 = map(x -> sin(x)*5, range(convert(Float64,0), convert(Float64, 2π), length = 25))
-y_0 = map(x -> cos(x)*5, range(convert(Float64,0), convert(Float64, 2π), length = 25))
+
 diffeq_many(x -> [-2 .5; 2 -2]*x, x_0, y_0)
 
 
-function lindiffeq_many(A, x_0, y_0,  maxiter = 10000, res = .001, frame = 10, iter_steps = 500)
+function lindiffeq_many(A, n,  maxiter = 10000, res = .001, frame = 10, iter_steps = 500)
+    x_0 = map(x -> sin(x)*5, range(convert(Float64,0), convert(Float64, 2π), length = n))
+    y_0 = map(x -> cos(x)*5, range(convert(Float64,0), convert(Float64, 2π), length = n))
     plt = diffeq_many(x -> A*x,  x_0, y_0,  maxiter, res, frame, iter_steps)
-    x_range = range(-frame, frame, 2)
-    plot!(plt,(x_range, eigvecs(A)[1]/eigvecs(A)[3]*x_range), line = :dot)
-    plot!(plt, (x_range, eigvecs(A)[2]/eigvecs(A)[4]*x_range), line = :dot)
+    for i in [1,3] 
+        x_range = range(-frame, frame, step = res)
+        y_eigen = (eigvecs(A)[i+1]/eigvecs(A)[i]*x_range)
+        x_range = x_range[broadcast(abs, y_eigen).<frame]
+        y_eigen = y_eigen[broadcast(abs, y_eigen).<frame]
+        y_eigen[begin:iter_steps*4:end] .= NaN
+
+        x1_range = x_range[x_range.<0]
+        x2_range = x_range[x_range.>0]
+        y1_eigen = y_eigen[x_range.<0]
+        y2_eigen = y_eigen[x_range.>0] 
+        if i == 1
+            j = 1
+        else
+            j = 2
+        end    
+        
+        if eigvals(A)[j] isa Complex
+            x1_range = 0
+            y1_eigen = 0
+            x2_range = 0
+            y2_eigen = 0
+        elseif eigvals(A)[j] > 0 
+            reverse!(x1_range)
+            reverse!(y1_eigen)
+        else
+            reverse!(x2_range)
+            reverse!(y2_eigen)
+        end
+
+        plot!(plt, x1_range, y1_eigen, arrow = true, linecolor = "grey")
+        plot!(plt, x2_range, y2_eigen, arrow = true, linecolor = "grey", legend = false)
+    end
     return plt
 end
 
-lindiffeq_many([-2 .5; 2 -2], x_0, y_0)
 
 
-urang_y = x*b_u
-vrange_y = x*b_v
+## NICE EXAMPLES
 
+lindiffeq_many([-2 .5; 2 -2],25)
+lindiffeq_many([-3 2; -2 2],15)
+lindiffeq_many([3 1; -1 1],25)
+lindiffeq_many([1 -1; 5 -1],15)
+lindiffeq_many([1 -1; 5 -2],10)
 
-
-
-
-diffeq(A, [.1;.1], 2, 1)[1:2]
-
-plot(diffeq(A, [8;8], 100, .15)[1:2])
-plot!(diffeq(A, [-8;8], 50, .15)[1:2])
-plot!(diffeq(A, [8;-8], 50, .15)[1:2])
-plot!(diffeq(A, [-8;-8], 50, .15)[1:2])
-plot!(diffeq(A, [-8;-8], 50, .15)[[1,4]])
-
-
-eigvecs(A)
-eigvals(A)
-
-b_u = eigvecs(A)[3]/eigvecs(A)[1]
-b_v = eigvecs(A)[4]/eigvecs(A)[2]
-
-
-x = [1, 2, NaN, 2, 3, 4]
-
-plt = plot([0,0.1], Any[rand(2),sin])
-for x in 0.2:0.1:π
-    push!(plt, 1, x, rand())
-    push!(plt, 2, x, sin(x))
-end
-plt
